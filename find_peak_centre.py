@@ -12,7 +12,15 @@ numfiles = len(filenames)
 a = 1114
 b = 1164
 
-np.d = []
+##Calculate wavelength from beam energy
+E = 60000       #eV
+h = 4.136e-15   #eV.s
+c = 3e+08       #m/s
+    
+l = (h*c)/E     #m
+#l = 1.2398419292e-11
+
+np.D = []
 np.Z = []
 
 i = 0
@@ -51,14 +59,22 @@ for f in filenames:
     
 #    plt.plot(x1, gauss(x1, *popt))
 #    plt.plot([popt[1], popt[1]], [15, 45])
+    
+     
+
+    
+    ##Bragg's law: 2*d*sin(theta) = n*lambda
+    rad = (popt[1])/2
+    deg = (360/(2*np.pi))*rad
+    d = l/(2*np.sin(deg))
       
-    np.d.insert(i, popt[1])
+    np.D.insert(i, d)
     np.Z.insert(i, z)
     
     i = i+1
     z = z+0.02
 
-plt.plot(np.Z, np.d)
-
+plt.plot(np.Z, np.D)
+print(np.D)
 #plt.savefig('testgraph.png')
     
