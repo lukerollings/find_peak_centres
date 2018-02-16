@@ -64,9 +64,9 @@ for f in filenames:
 
     
     ##Bragg's law: 2*d*sin(theta) = n*lambda
-    rad = (popt[1])/2
-    deg = (360/(2*np.pi))*rad
-    d = l/(2*np.sin(deg))
+    deg = (popt[1])/2
+    rad = ((2*np.pi)/360)*deg
+    d = (l/(2*np.sin(rad)))*1e10
       
     np.D.insert(i, d)
     np.Z.insert(i, z)
@@ -75,6 +75,9 @@ for f in filenames:
     z = z+0.02
 
 plt.plot(np.Z, np.D)
-print(np.D)
+plt.ylim(1.535, 1.545)
+plt.xlabel("z (mm)")
+plt.ylabel("d spacing (Angstrom)")
+#print(np.D)
 #plt.savefig('testgraph.png')
     
