@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from lmfit import Model, Parameters
 
 os.chdir('C://Users//mbgnwlr2//Documents//PhD_SynchrotronStuff//Winter18_beamtime_data//xrd//Al_SiC_1D_0_')
-filenames = glob.glob('Al_SiC_1D_0__0102.dat')
+filenames = glob.glob('Al_SiC_1D_0__*.dat')
 
 numfiles = len(filenames)
 
@@ -26,6 +26,8 @@ np.Z = []
 
 i = 0
 z = -2.98
+
+th = 0
 
 ##generalised 2-factor Gaussian function
 def gauss2(x, a1, b1, c1, a2, b2, c2):
@@ -64,41 +66,52 @@ for f in filenames:
     
     plt.plot(x1, gauss2(x1, *popt))
     plt.plot([popt[1], popt[1]], [15, 45])
+    plt.plot([popt[4], popt[4]], [15, 45])
     print(popt)
     
     
-    ##lmfit.Model method
-    gmodel = Model(gauss2)
-    params = Parameters()
-    params.add_many(('a1', (peak+base)/2, True, base, peak, None, None),
-                    ('b1', mean, True, (mean-sigma), (mean+sigma), None, None),
-                    ('c1', sigma, True, 0, 1, None, None),
-                    ('a2', (peak+base)/2, True, base, peak, None, None),
-                    ('b2', mean, True, (mean-sigma), (mean+sigma), None, None),
-                    ('c2', sigma, True, 0, 1, None, None)
-                    )
     
-    result = gmodel.fit(y1, params, x=x1)
-    print(result.fit_report())
-
-    plt.plot(x1, result.init_fit)
-    plt.plot(x1, result.best_fit)
+    if popt[1] > popt[4]:
+        th = popt[1]
+    else:th = popt[4] 
     
-#    ##Bragg's law: 2*d*sin(theta) = n*lambda
-#    deg = (popt[1])/2
-#    rad = ((2*np.pi)/360)*deg
-#    d = (l/(2*np.sin(rad)))*1e10
-#      
-#    np.D.insert(i, d)
-#    np.Z.insert(i, z)
+    
+    
+#    ##lmfit.Model method
+#    gmodel = Model(gauss2)
+#    params = Parameters()
+#    params.add_many(('a1', (peak+base)/2, True, base, peak, None, None),
+#                    ('b1', mean, True, (mean-sigma), (mean+sigma), None, None),
+#                    ('c1', sigma, True, 0, 1, None, None),
+#                    ('a2', (peak+base)/2, True, base, peak, None, None),
+#                    ('b2', mean, True, (mean-sigma), (mean+sigma), None, None),
+#                    ('c2', sigma, True, 0, 1, None, None)
+#                    )
 #    
-#    i = i+1
-#    z = z+0.02
+#    result = gmodel.fit(y1, params, x=x1)
+#    print(result.fit_report())
 #
-#plt.plot(np.Z, np.D)
-#plt.ylim(1.535, 1.545)
-#plt.xlabel("z (mm)")
-#plt.ylabel("d spacing (Angstrom)")
-##print(np.D)
-##plt.savefig('testgraph.png')
+#    plt.plot(x1, result.init_fit)
+#    plt.plot(x1, result.best_fit)
+    
+    ##Bragg's law: 2*d*sin(theta) = n*lambda
+    deg = (th)/2
+    rad = ((2*np.pi)/360)*deg
+    d = (l/(2*np.sin(rad)))*1e10
+      
+    np.D.insert(i, d)
+    np.Z.insert(i, z)
+    
+    i = i+1
+    z = z+0.02
+    
+    
+
+plt.plot(np.Z, np.D)
+plt.xlim(-3, 3)
+plt.ylim(1.535, 1.54)
+plt.xlabel("z (mm)")
+plt.ylabel("d spacing (Angstrom)")
+#print(np.D)
+#plt.savefig('testgraph.png')
     
