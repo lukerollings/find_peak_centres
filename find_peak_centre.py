@@ -5,7 +5,10 @@ from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
 os.chdir('C://Users//mbgnwlr2//Documents//PhD_SynchrotronStuff//Winter18_beamtime_data//xrd')
-loads = glob.glob('Al_SiC_1D_*_')
+
+sample = "11D"
+
+loads = glob.glob('Al_SiC_'+str(sample)+'_*')
 
 plt.figure(figsize=(20,10))
 
@@ -24,6 +27,8 @@ l = (h*c)/E     #m
 def gauss2(x, a1, b1, c1, a2, b2, c2):
     return a1*np.exp(-((x-b1)/c1)**2) + a2*np.exp(-((x-b2)/c2)**2)
 
+I = 0
+
 for L in loads:
     file = str(L)+'//'+str(L)+'_*.dat'
     filenames = glob.glob(file) 
@@ -41,7 +46,7 @@ for L in loads:
         ##pull data from the file into an array
         data = np.genfromtxt(f,
                              dtype = float,
-                             skip_header=53,
+                             skip_header=54,
                              delimiter='    '
                              )
         
@@ -89,12 +94,16 @@ for L in loads:
         
         
     
-    plt.plot(np.Z, np.D)
-    plt.xlim(-3, 3)
-    plt.ylim(1.537, 1.56)
-    plt.xlabel("z (mm)")
-    plt.ylabel("d spacing (Angstrom)")
+    plt.plot(np.Z, np.D, label=str(sample)+'_load_stage_'+str(I))
+    
+    I = I+1
     
 
-plt.savefig('Al_SiC_1D.png')
+plt.xlim(-3, 3)
+plt.ylim(1.537, 1.56)
+plt.xlabel("z (mm)")
+plt.ylabel("d spacing (Angstrom)")
+plt.title(str(sample))
+plt.legend(loc='upper left')
+plt.savefig(str(sample)+'.png')
     
