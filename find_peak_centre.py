@@ -3,14 +3,15 @@ import numpy as np
 import glob
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.signal import lfilter
 
 os.chdir('C://Users//mbgnwlr2//Documents//PhD_SynchrotronStuff//Winter18_beamtime_data//xrd')
 
-sample = "11D"
+sample = "13D"
 
 loads = glob.glob('Al_SiC_'+str(sample)+'_*')
 
-plt.figure(figsize=(20,10))
+
 
 a = 1114
 b = 1164
@@ -68,6 +69,10 @@ for L in loads:
         ##fit a curve to Gaussian function, 'popt' returns optimal values for a, b and c
         popt, pcov = curve_fit(gauss2, x1, y1, bounds=([base, (mean-sigma), 0, base, (mean-sigma), 0], [peak, (mean+sigma), 1, peak, (mean+sigma), 1]))
         
+#        a1, b1, c1, a2, b2, c2 = popt[0], popt[1], popt[2], popt[3], popt[4], popt[5]
+#        
+#        popt, pcov = curve_fit(gauss2, x1, y1, bounds=([base, (mean-sigma), 0, base, (mean-sigma), 0], [peak, (mean+sigma), 1, peak, (mean+sigma), 1]))
+        
 #        ##For single files, remove comments if you wish to display the fit
 #        plt.plot(x1, y1, 'bo')
 #        plt.plot(x1, gauss2(x1, *popt))
@@ -84,26 +89,47 @@ for L in loads:
         ##Bragg's law: 2*d*sin(theta) = n*lambda
         deg = (th)/2
         rad = ((2*np.pi)/360)*deg
-        d = (l/(2*np.sin(rad)))*1e10
+        d = (l/(2*np.sin(rad)))
+        e = (d-1.54290106970688e-10)/1.54290106970688e-10       #convert from d spacing to strain using value calculated from exposed fibre
           
-        np.D.insert(i, d)
+        np.D.insert(i, e)
         np.Z.insert(i, z)
         
         i = i+1
         z = z+0.02
         
         
+    plt.figure(1, figsize=(20,10))
     
     plt.plot(np.Z, np.D, label=str(sample)+'_load_stage_'+str(I))
+    plt.xlim(-3, 3)
+    plt.ylim(-0.001, 0.01)
+    plt.xlabel("z (mm)")
+    plt.ylabel("strain, $\epsilon$")
+    plt.title(str(sample))
+    plt.legend(loc='upper left')
+    plt.savefig(str(sample)+'_strain.png')
+    
+    plt.figure(2, figsize=(20,10))
+    grad = np.gradient(np.D)
+    
+    N = 15
+    B = [1.0/N]*N
+    A = 1
+    
+    dedz = lfilter(B, A, grad) #array with values of de/dz, smoothed out with lfilter
+    
+    plt.plot(np.Z, dedz, label=str(sample)+'_load_stage_'+str(I))
+    plt.xlim(-3, 3)
+    plt.ylim(-0.0001, 0.00015)
+    plt.xlabel("z (mm)")
+    plt.ylabel("d$\epsilon$/dz")
+    plt.title(str(sample))
+    plt.legend(loc='upper left')
+    plt.savefig(str(sample)+'_gradient.png')
     
     I = I+1
     
 
-plt.xlim(-3, 3)
-plt.ylim(1.537, 1.56)
-plt.xlabel("z (mm)")
-plt.ylabel("d spacing (Angstrom)")
-plt.title(str(sample))
-plt.legend(loc='upper left')
-plt.savefig(str(sample)+'.png')
+
     
