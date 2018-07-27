@@ -11,8 +11,6 @@ sample = "13D"
 
 loads = glob.glob('Al_SiC_'+str(sample)+'_*')
 
-
-
 a = 1114
 b = 1164
     
@@ -28,14 +26,15 @@ l = (h*c)/E     #m
 def gauss2(x, a1, b1, c1, a2, b2, c2):
     return a1*np.exp(-((x-b1)/c1)**2) + a2*np.exp(-((x-b2)/c2)**2)
 
+
 I = 0
 
 for L in loads:
     file = str(L)+'//'+str(L)+'_*.dat'
     filenames = glob.glob(file) 
     
-    np.D = []
-    np.Z = []
+    D = []
+    Z = []
     
     i = 0
     z = -2.98
@@ -47,7 +46,7 @@ for L in loads:
         ##pull data from the file into an array
         data = np.genfromtxt(f,
                              dtype = float,
-                             skip_header=54,
+                             skip_header=56,
                              delimiter='    '
                              )
         
@@ -91,27 +90,22 @@ for L in loads:
         rad = ((2*np.pi)/360)*deg
         d = (l/(2*np.sin(rad)))
         e = (d-1.54290106970688e-10)/1.54290106970688e-10       #convert from d spacing to strain using value calculated from exposed fibre
-          
-        np.D.insert(i, e)
-        np.Z.insert(i, z)
+        
+        
+        D.insert(i, e)
+        
+        #replaces outlying points with previous points, gives smoother curve with no noise
+        if abs((D[i]) - (D[i-1])) > 0.0005:
+            D[i-1]=D[i-2]
+        
+        Z.insert(i, z)
         
         i = i+1
         z = z+0.02
         
         
-    plt.figure(1, figsize=(20,10))
     
-    plt.plot(np.Z, np.D, label=str(sample)+'_load_stage_'+str(I))
-    plt.xlim(-3, 3)
-    plt.ylim(-0.001, 0.01)
-    plt.xlabel("z (mm)")
-    plt.ylabel("strain, $\epsilon$")
-    plt.title(str(sample))
-    plt.legend(loc='upper left')
-    plt.savefig(str(sample)+'_strain.png')
-    
-    plt.figure(2, figsize=(20,10))
-    grad = np.gradient(np.D)
+    grad = np.gradient(D)
     
     N = 15
     B = [1.0/N]*N
@@ -119,13 +113,30 @@ for L in loads:
     
     dedz = lfilter(B, A, grad) #array with values of de/dz, smoothed out with lfilter
     
-    plt.plot(np.Z, dedz, label=str(sample)+'_load_stage_'+str(I))
+    
+    plt.figure(1, figsize=(20,10))
+    
+    plt.plot(Z, D) # label=str(sample)+'_load_stage_'+str(I))
+#    plt.xlim(-3, 3)
+#    plt.ylim(-0.001, 0.01)
+    plt.xlabel("z (mm)")
+    plt.ylabel("strain, $\epsilon$")
+    plt.title(str(sample))
+    plt.legend(loc='upper left')
+    plt.grid(True)
+    plt.savefig(str(sample)+'_strain.png')
+    
+    
+    plt.figure(2, figsize=(20,10))
+    
+    plt.plot(Z, dedz, label=str(sample)+'_load_stage_'+str(I))
     plt.xlim(-3, 3)
     plt.ylim(-0.0001, 0.00015)
     plt.xlabel("z (mm)")
     plt.ylabel("d$\epsilon$/dz")
     plt.title(str(sample))
     plt.legend(loc='upper left')
+    plt.grid(True)
     plt.savefig(str(sample)+'_gradient.png')
     
     I = I+1
