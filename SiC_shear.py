@@ -17,7 +17,7 @@ from scipy.signal import lfilter
 ##DEFINE VARIABLES AND FUNCTIONS
 
 #redirect to data folder
-os.chdir("##INSERT ROOT DIRECTORY NAME##")
+os.chdir("D://Paper Planning//Autumn18_FibreFrag//data")
 
 #Enter sample ID (sample 13D gave most useful results)
 sample = "13D"
@@ -44,7 +44,7 @@ c = 3e+08       #m/s
 l = (h*c)/E     #m
 
 #Fibre radius and stiffness
-radius = 140E-6    #m
+radius = 70E-3    #mm
 stiffness = 410000      #MPa
 
 #Generalised 2-factor Gaussian function
@@ -54,6 +54,10 @@ def gauss2(x, a1, b1, c1, a2, b2, c2):
 
 #Iteration counter to track load count
 I = 0
+
+max_shear = []
+min_shear = []
+loads_final = []
 
 
 ##LOAD CYCLE
@@ -145,8 +149,8 @@ for L in loads:
   
     ##CALCULATING SHEAR STRESS
     #Calculate the gradient of valued in array D (tensile strain)
-    grad = np.gradient(D)
-    grad_raw = np.gradient(D_raw)
+    grad = np.gradient(D, 0.02)
+    grad_raw = np.gradient(D_raw, 0.02)
     
     #Define parameters for smoothing function lfilter
     N = 15
@@ -194,9 +198,9 @@ for L in loads:
     
     plt.scatter(Z, t_smooth, label = name, marker = mark)
     plt.xlim(-3, 3)
-    plt.ylim(-2, 2)
+    plt.ylim(-100, 100)
     plt.xlabel("z (mm)")
-    plt.ylabel("shear strain, $\\tau $")
+    plt.ylabel("Interfacial Shear Stress, $\\tau $ (MPa)")
     plt.grid(True)
     plt.legend(loc='upper left')
     plt.savefig(str(sample)+'_shear.png')
@@ -206,17 +210,22 @@ for L in loads:
     
     plt.scatter(Z, t_raw, label = name, marker = mark) # label=str(sample)+'_load_stage_'+str(I))
     plt.xlim(-3, 3)
-    plt.ylim(-2, 2)
+    plt.ylim(-100, 100)
     plt.xlabel("z (mm)")
-    plt.ylabel("shear strain, $\\tau $")
+    plt.ylabel("Interfacial Shear Stress, $\\tau $ (MPa)")
     plt.grid(True)
     plt.legend(loc='upper left')
     plt.savefig(str(sample)+'_shear_raw.png')
+    
+    print("Max shear value " + str(np.amax(t_smooth)))
+    print("Min shear value " + str(np.amin(t_smooth)))
+    max_shear.insert(I, np.amax(t_smooth))
+    min_shear.insert(I, np.amin(t_smooth))
+    loads_final.insert(I, L)
     
     #Add to load count iteration counter
     I = I+1
 
 #After all iterations, save dataframes to .csv files for further analysis
-os.chdir("C://Users//mbgnwlr2//Documents//Autumn18_FibreFrag//fig5")
 df_tau.to_csv(str(sample)+'_shear.csv', ',')
 df_tau_raw.to_csv(str(sample)+'_shear_raw.csv', ',')
